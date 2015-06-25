@@ -40,9 +40,10 @@
     </body>
     <footer>
 <script>
-    var s = 40;
-    var rows = [15,14,13,12,11,10,9,8,7,6,5,4,3,2,1];
-    var columns = ["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o"];
+    var s = 10;
+    // http://stackoverflow.com/questions/3895478/does-javascript-have-a-method-like-range-to-generate-an-array-based-on-suppl
+    var rows = Array.apply(null, Array(55)).map(function (_, i) {return i;}); //[1,2,3,4,5,6,7,8,9,10];
+    var columns = Array.apply(null, Array(55)).map(function (_, i) {return i;});//[1,2,3,4,5,6,7,8,9,10];
     var page = d3.select("div#page")
         .attr("style","width:" + (s * rows.length + 1) + "px;");
     var header = page.append("div")
@@ -65,7 +66,7 @@
           {
             column: column,
             row: row,
-            name: column + row,
+            name: "game-" + row + "-" + column,
             color: colorAlternator(parseInt(c) + parseInt(i)),
             x:parseInt(c),
             y:parseInt(i)
@@ -143,7 +144,7 @@
 	  function handler(msg) {
 		  // TODO: parse data
 	    var data = JSON.parse(msg.data);
-	    //console.log(data.field)
+	    console.log(data.field)
 	    // fill a3 rectangle red
 	    d3.select(data.field).select('rect').style("fill", data.color)
 	  }
