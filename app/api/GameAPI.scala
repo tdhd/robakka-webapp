@@ -13,21 +13,19 @@ import play.api.libs.json._
 import io.github.tdhd.robakka.World.AgentEntity
 
 object GameAPI {
-  def props(channel: Channel[JsValue]) = Props(new GameAPI(channel))
+  def props(channel: Channel[JsValue], worldSize: World.Size = World.Size(30, 30)) = Props(new GameAPI(channel, worldSize))
 }
 
 /**
  * TODO
- * 
  * - configure teams via parameters
- * - configure board size
  */
-class GameAPI(channel: Channel[JsValue]) extends Actor with ActorLogging {
+class GameAPI(channel: Channel[JsValue], worldSize: World.Size = World.Size(30, 30)) extends Actor with ActorLogging {
   import context.dispatcher
 
   val teams = List(Game.Team(0, io.github.tdhd.robakka.behaviours.RandomBehaviour),
     Game.Team(1, io.github.tdhd.robakka.behaviours.RandomBehaviour))
-  val game = context.actorOf(Game.props(teams), "Game")
+  val game = context.actorOf(Game.props(teams, worldSize), "Game")
 
   override def preStart() = game ! Game.Subscribe(self)
   override def postStop() = {
@@ -35,18 +33,39 @@ class GameAPI(channel: Channel[JsValue]) extends Actor with ActorLogging {
     context.stop(game)
   }
 
+  //  // TODO: convert the world state to compatible json
+  //  def convertWorldStateJson(ws: World.State) = {
+  //    ws.entities.map {
+  //      case World.AgentEntity(pos, id, team, health, _, _) =>
+  //        val color = if (team == 0) "blue" else "red"
+  //        val elem = Seq(
+  //          "name" -> JsString("Watership Down"),
+  //          "field" -> JsString(s"#game-${pos.row}-${pos.col}"),
+  //          "color" -> JsString(color))
+  //      case World.PlantEntity(pos) =>
+  //        val elem = Seq(
+  //          "name" -> JsString("Watership Down"),
+  //          "field" -> JsString(s"#game-${pos.row}-${pos.col}"),
+  //          "color" -> JsString("green"))
+  //    }
+  //  }
+
+  def refresh() = {
+    println(s"received world state from game in play akka")
+    // clean field
+    for (i <- 0 to worldSize.nRows; j <- 0 to worldSize.nCols) {
+      val json: JsValue = JsObject(Seq(
+        "name" -> JsString("Watership Down"),
+        "field" -> JsString(s"#game-${i}-${j}"),
+        "color" -> JsString("white")))
+      channel.push(json)
+    }
+  }
+
   def receive = {
-    // TODO: convert the world state to compatible json
     case ws: World.State =>
-      println(s"received world state from game in play akka")
-//      // clean field
-//      for (i <- 1 to 55; j <- 1 to 55) {
-//        val json: JsValue = JsObject(Seq(
-//          "name" -> JsString("Watership Down"),
-//          "field" -> JsString(s"#game-${i}-${j}"),
-//          "color" -> JsString("white")))
-//        channel.push(json)
-//      }
+      refresh()
+
       ws.entities.foreach {
         case World.AgentEntity(pos, id, team, health, _, _) =>
           val color = if (team == 0) "green" else "red"
@@ -54,6 +73,12 @@ class GameAPI(channel: Channel[JsValue]) extends Actor with ActorLogging {
             "name" -> JsString("Watership Down"),
             "field" -> JsString(s"#game-${pos.row}-${pos.col}"),
             "color" -> JsString(color)))
+          channel.push(json)
+        case World.PlantEntity(pos) =>
+          val json: JsValue = JsObject(Seq(
+            "name" -> JsString("Watership Down"),
+            "field" -> JsString(s"#game-${pos.row}-${pos.col}"),
+            "color" -> JsString("black")))
           channel.push(json)
         case _ =>
       }

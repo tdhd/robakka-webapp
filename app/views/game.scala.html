@@ -1,10 +1,10 @@
-@(title: String)(content: String)
+@(title: String)(content: String)(nRows: Int, nCols: Int)
 
 <!DOCTYPE html>
 
 <html lang="en">
     <head>
-        <title>@title</title>
+        <title>@title and @nRows rows and @nCols cols</title>
 		<meta charset="utf-8">
 		  <style>
 		    body {
@@ -32,136 +32,153 @@
         <link rel="shortcut icon" type="image/png" href="@routes.Assets.versioned("images/favicon.png")">
         <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.18/require.min.js" charset="utf-8"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js" charset="utf-8"></script>
+
+		<!-- Latest compiled and minified CSS -->
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+		<!-- Optional theme -->
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
+		<!-- Latest compiled and minified JavaScript -->
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+
         <script src="@routes.Assets.versioned("javascripts/hello.js")" type="text/javascript"></script>
     </head>
     <body>
     <div>@content</div>
+    <!-- Main jumbotron for a primary marketing message or call to action -->
+    <div class="jumbotron">
+      <div class="container">
+        <h1>Hello, world!</h1>
+        <p>This is a template for a simple marketing or informational website. It includes a large callout called a jumbotron and three supporting pieces of content. Use it as a starting point to create something more unique.</p>
+        <p><a class="btn btn-primary btn-lg" href="#" role="button">Learn more &raquo;</a></p>
+      </div>
+    </div>
     <div id="page"></div>
     </body>
     <footer>
-<script>
-    var s = 10;
-    // http://stackoverflow.com/questions/3895478/does-javascript-have-a-method-like-range-to-generate-an-array-based-on-suppl
-    var rows = Array.apply(null, Array(55)).map(function (_, i) {return i;}); //[1,2,3,4,5,6,7,8,9,10];
-    var columns = Array.apply(null, Array(55)).map(function (_, i) {return i;});//[1,2,3,4,5,6,7,8,9,10];
-    var page = d3.select("div#page")
-        .attr("style","width:" + (s * rows.length + 1) + "px;");
-    var header = page.append("div")
-        .attr("id","header");
-    var title = header.append("h1")
-        .attr("id","title")
-        .text("Checkerboard");
-    var board = page.append("svg")
-        .attr("id","board")
-        .attr("height", s * rows.length)
-        .attr("width", s * columns.length);
-    var tile_layer = board.selectAll("g");
-    var tiles = [];
-    for(i in columns){
-      var c = i
-      column = columns[i]
-      for(i in rows){
-        row = rows[i]
-        tiles.push(
-          {
-            column: column,
-            row: row,
-            name: "game-" + row + "-" + column,
-            color: colorAlternator(parseInt(c) + parseInt(i)),
-            x:parseInt(c),
-            y:parseInt(i)
-          }
-        );
-      };
-    }; //tiles = [{column: "a", row: 1, name: "a1"} ... {column: "g", row: 8, name: "g8"}]
-
-    var tile = tile_layer.data(tiles).enter().append("g")
-        .attr("id", function(d){
-          return d["name"]
-        })
-        .attr("class", function(d, i){
-          return "space" + " " + d["column"] + " " + d["row"] + " " + d["color"]
-        })
-        .attr("transform", function(d, i) { 
-          return "translate(" + (d["x"] * s) + "," + (d["y"] * s) + ")";
-        });
-    var tile_square = tile.append("rect")
-        .attr("width",s)
-        .attr("height",s)
-        .attr("stroke","#000");
-    var tile_text = tile.append("text")
-        .attr("x", function(d){
-          return d["x"]
-        })
-        .attr("y", function(d){
-          return d["y"]
-        })
-        .text(function(d) {
-          return d["name"];
-        })
-        .attr("dy", "10px")
-        .attr("dx", "3px");
-    var footer = page.append("div").attr("id","footer");
-    var source = footer.append("a").attr("href","https://github.com/s2t2/checkerboard").text("source");
-    function colorAlternator(n){
-      //if(n % 2 == 0){ 
-        return "light"
-      //}
-      //else { 
-      //  return "dark"
-      //}
-    };
-    
-    tile_square.on("mouseover", fillBlue)
-    tile_square.on("click", fillWhite)
-    //tile_square.on("dblclick", fillWhite)
-    //tile_square.on("mouseout", fillRed)
-    //tile_square.on("mouseover", function(d){
-    //  
-    //});
-    ////tile_square.on("mouseout", fillBlack)
-    //tile_square.on("click", fillCheckered()) // function(d){return d.x + d.y;}
-    //tile_square.on("dblclick", fillWhite)
-    function fillWhite(){
-      d3.select(this).style("fill", "white")
-    };
-    
-    function fillBlack(){
-      d3.select(this).style("fill", "black")
-    };
-    
-    function fillBlue(){
-      d3.select(this).style("fill", "steelblue")
-    };
-    
-    function fillRed(){
-      d3.select(this).style("fill", "red")
-    };
-
-    // TODO: subscribe to game feed
-	  var feed = new EventSource("/metricsFeed");
-
-	  function handler(msg) {
-		  // TODO: parse data
-	    var data = JSON.parse(msg.data);
-	    console.log(data.field)
-	    // fill a3 rectangle red
-	    d3.select(data.field).select('rect').style("fill", data.color)
-	  }
-	  feed.addEventListener("message", handler, false);
-
-    //var something;
-    //function fillCheckered(){
-    //  something = d3.select(this);
-    //  console.log(something)
-    //  
-    //  //if(n % 2 == 0){
-    //  //  fillWhite()
-    //  //}
-    //  //else { 
-    //  //  fillBlue()
-    //  //}
-    //};
-  </script>
+	<script>
+	    var s = 10;
+	    // http://stackoverflow.com/questions/3895478/does-javascript-have-a-method-like-range-to-generate-an-array-based-on-suppl
+	    // TODO: 0,0 field missing
+	    var rows = Array.apply(null, Array(@nRows)).map(function (_, i) {return i;}); //[1,2,3,4,5,6,7,8,9,10];
+	    var columns = Array.apply(null, Array(@nCols)).map(function (_, i) {return i;});//[1,2,3,4,5,6,7,8,9,10];
+	    var page = d3.select("div#page")
+	        .attr("style","width:" + (s * rows.length + 1) + "px;");
+	    var header = page.append("div")
+	        .attr("id","header");
+	    var title = header.append("h1")
+	        .attr("id","title")
+	        .text("Checkerboard");
+	    var board = page.append("svg")
+	        .attr("id","board")
+	        .attr("height", s * rows.length)
+	        .attr("width", s * columns.length);
+	    var tile_layer = board.selectAll("g");
+	    var tiles = [];
+	    for(i in columns){
+	      var c = i
+	      column = columns[i]
+	      for(i in rows){
+	        row = rows[i]
+	        tiles.push(
+	          {
+	            column: column,
+	            row: row,
+	            name: "game-" + row + "-" + column,
+	            color: colorAlternator(parseInt(c) + parseInt(i)),
+	            x:parseInt(c),
+	            y:parseInt(i)
+	          }
+	        );
+	      };
+	    }; //tiles = [{column: "a", row: 1, name: "a1"} ... {column: "g", row: 8, name: "g8"}]
+	
+	    var tile = tile_layer.data(tiles).enter().append("g")
+	        .attr("id", function(d){
+	          return d["name"]
+	        })
+	        .attr("class", function(d, i){
+	          return "space" + " " + d["column"] + " " + d["row"] + " " + d["color"]
+	        })
+	        .attr("transform", function(d, i) { 
+	          return "translate(" + (d["x"] * s) + "," + (d["y"] * s) + ")";
+	        });
+	    var tile_square = tile.append("rect")
+	        .attr("width",s)
+	        .attr("height",s)
+	        .attr("stroke","#000");
+	    var tile_text = tile.append("text")
+	        .attr("x", function(d){
+	          return d["x"]
+	        })
+	        .attr("y", function(d){
+	          return d["y"]
+	        })
+	        .text(function(d) {
+	          return d["name"];
+	        })
+	        .attr("dy", "10px")
+	        .attr("dx", "3px");
+	    var footer = page.append("div").attr("id","footer");
+	    var source = footer.append("a").attr("href","https://github.com/s2t2/checkerboard").text("source");
+	    function colorAlternator(n){
+	      //if(n % 2 == 0){ 
+	        return "light"
+	      //}
+	      //else { 
+	      //  return "dark"
+	      //}
+	    };
+	    
+	    tile_square.on("mouseover", fillBlue)
+	    tile_square.on("click", fillWhite)
+	    //tile_square.on("dblclick", fillWhite)
+	    //tile_square.on("mouseout", fillRed)
+	    //tile_square.on("mouseover", function(d){
+	    //  
+	    //});
+	    ////tile_square.on("mouseout", fillBlack)
+	    //tile_square.on("click", fillCheckered()) // function(d){return d.x + d.y;}
+	    //tile_square.on("dblclick", fillWhite)
+	    function fillWhite(){
+	      d3.select(this).style("fill", "white")
+	    };
+	    
+	    function fillBlack(){
+	      d3.select(this).style("fill", "black")
+	    };
+	    
+	    function fillBlue(){
+	      d3.select(this).style("fill", "steelblue")
+	    };
+	    
+	    function fillRed(){
+	      d3.select(this).style("fill", "red")
+	    };
+	
+	    // TODO: subscribe to game feed
+		  var feed = new EventSource("/metricsFeed");
+	
+		  function handler(msg) {
+			  // TODO: parse data
+		    var data = JSON.parse(msg.data);
+		    console.log(data.field)
+		    // fill a3 rectangle red
+		    d3.select(data.field).select('rect').style("fill", data.color)
+		  }
+		  feed.addEventListener("message", handler, false);
+	
+	    //var something;
+	    //function fillCheckered(){
+	    //  something = d3.select(this);
+	    //  console.log(something)
+	    //  
+	    //  //if(n % 2 == 0){
+	    //  //  fillWhite()
+	    //  //}
+	    //  //else { 
+	    //  //  fillBlue()
+	    //  //}
+	    //};
+	</script>
     </footer>
 </html>

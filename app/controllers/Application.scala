@@ -13,6 +13,7 @@ import scala.util.Random
 import api._
 import akka.actor.ActorSystem
 import javax.inject._
+import io.github.tdhd.robakka.World
 
 // https://github.com/matthiasn/sse-chat
 // https://github.com/matthiasn/sse-perf
@@ -21,8 +22,9 @@ import javax.inject._
 
 /**
  * TODO
+ * - rename packages of project
  * - need start/stop/configure buttons
- * - scatterplot might be better performing
+ * - scatterplot might be better performing (http://bl.ocks.org/mbostock/3887118)
  * - rename feed
  */
 
@@ -35,7 +37,8 @@ class Application @Inject() (system: ActorSystem) extends Controller {
 
 //  var webSubscribers = List.empty[String]
 
-  val gameAPI = system.actorOf(GameAPI.props(channel), "GameAPI")
+  val worldSize = World.Size(30, 30)
+  val gameAPI = system.actorOf(GameAPI.props(channel, worldSize), "GameAPI")
 
   // TODO: this is just a test for d3js
   def index = Action {
@@ -45,7 +48,7 @@ class Application @Inject() (system: ActorSystem) extends Controller {
   def game = Action { implicit req =>
 //    webSubscribers +:= req.host
 //    webSubscribers.foreach(println)
-    Ok(views.html.game("robakka")("todo"))
+    Ok(views.html.game("robakka")("todo")(worldSize.nRows, worldSize.nCols))
   }
 
   /** Enumeratee for filtering messages based on room */
@@ -53,12 +56,10 @@ class Application @Inject() (system: ActorSystem) extends Controller {
     Enumeratee.filter[JsValue] { json: JsValue => (json \ "name").as[String] == "Watership Down" }
 
   /** Enumeratee for detecting disconnect of SSE stream */
-  def connDeathWatch(addr: String): Enumeratee[JsValue, JsValue] = {
+  def connDeathWatch(request: play.api.mvc.Request[play.api.mvc.AnyContent]): Enumeratee[JsValue, JsValue] = {
     Enumeratee.onIterateeDone {
       () =>
-        println(addr + " - SSE disconnected")
-        // addr == "127.0.0.1"
-        // but webSubscribers is list with "localhost:9000" entries
+        println(s"${request.remoteAddress} - SSE disconnected")
         //webSubscribers = webSubscribers.filterNot(_ == addr)
     }
   }
@@ -73,7 +74,7 @@ class Application @Inject() (system: ActorSystem) extends Controller {
       Ok.feed(out
         // &> Concurrent.buffer(100)
         // &> filter()
-        &> connDeathWatch(req.remoteAddress)
+        &> connDeathWatch(req)
         &> EventSource()).as("text/event-stream")
     }
   }
