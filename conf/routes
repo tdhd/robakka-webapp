@@ -5,6 +5,7 @@
 # Home page
 GET     /                           controllers.Application.index
 GET		/game						controllers.Application.game
+GET		/scatter					controllers.Application.scatter
 GET		/metricsFeed				controllers.Application.metricsFeed
 
 # Map static resources from the /public folder to the /assets URL path

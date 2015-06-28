@@ -33,54 +33,32 @@ class GameAPI(channel: Channel[JsValue], worldSize: World.Size = World.Size(30, 
     context.stop(game)
   }
 
-  //  // TODO: convert the world state to compatible json
-  //  def convertWorldStateJson(ws: World.State) = {
-  //    ws.entities.map {
-  //      case World.AgentEntity(pos, id, team, health, _, _) =>
-  //        val color = if (team == 0) "blue" else "red"
-  //        val elem = Seq(
-  //          "name" -> JsString("Watership Down"),
-  //          "field" -> JsString(s"#game-${pos.row}-${pos.col}"),
-  //          "color" -> JsString(color))
-  //      case World.PlantEntity(pos) =>
-  //        val elem = Seq(
-  //          "name" -> JsString("Watership Down"),
-  //          "field" -> JsString(s"#game-${pos.row}-${pos.col}"),
-  //          "color" -> JsString("green"))
-  //    }
-  //  }
-
-  def refresh() = {
-    println(s"received world state from game in play akka")
-    // clean field
-    for (i <- 0 to worldSize.nRows; j <- 0 to worldSize.nCols) {
-      val json: JsValue = JsObject(Seq(
-        "name" -> JsString("Watership Down"),
-        "field" -> JsString(s"#game-${i}-${j}"),
-        "color" -> JsString("white")))
-      channel.push(json)
-    }
-  }
-
   def receive = {
     case ws: World.State =>
-      refresh()
+      val nAgents = ws.entities.filter {
+        case agent: World.AgentEntity => true
+        case _ => false
+      }.size
 
-      ws.entities.foreach {
+      val allEntities = ws.entities.map {
         case World.AgentEntity(pos, id, team, health, _, _) =>
-          val color = if (team == 0) "green" else "red"
-          val json: JsValue = JsObject(Seq(
-            "name" -> JsString("Watership Down"),
-            "field" -> JsString(s"#game-${pos.row}-${pos.col}"),
-            "color" -> JsString(color)))
-          channel.push(json)
+          JsObject(Seq(
+            "entityType" -> JsNumber(1),
+            "position_row" -> JsNumber(pos.row),
+            "position_col" -> JsNumber(pos.col),
+            "team" -> JsNumber(team)))
         case World.PlantEntity(pos) =>
-          val json: JsValue = JsObject(Seq(
-            "name" -> JsString("Watership Down"),
-            "field" -> JsString(s"#game-${pos.row}-${pos.col}"),
-            "color" -> JsString("black")))
-          channel.push(json)
-        case _ =>
+          JsObject(Seq(
+            "entityType" -> JsNumber(2),
+            "position_row" -> JsNumber(pos.row),
+            "position_col" -> JsNumber(pos.col),
+            "team" -> JsNull))
       }
+      val json: JsValue = JsObject(Seq(
+        "nAgents" -> JsNumber(nAgents),
+        "entities" -> JsArray(allEntities)))
+
+      // notify the channel about the current world state
+      channel.push(json)
   }
 }

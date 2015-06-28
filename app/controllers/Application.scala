@@ -40,6 +40,9 @@ class Application @Inject() (system: ActorSystem) extends Controller {
   val worldSize = World.Size(30, 30)
   val gameAPI = system.actorOf(GameAPI.props(channel, worldSize), "GameAPI")
 
+  def scatter = Action {
+    Ok(views.html.scatter("robakka")("todo")(worldSize.nRows, worldSize.nCols))
+  }
   // TODO: this is just a test for d3js
   def index = Action {
     Ok(views.html.index("Your new application is ready."))
