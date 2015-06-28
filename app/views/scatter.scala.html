@@ -88,7 +88,7 @@
                 .attr("fill", function(d) {
                 	return d[2];
                 })
-                .attr("r", 5);  // radius
+                .attr("r", 8);  // radius
 
             // Add to X axis
             svg.append("g")
@@ -110,8 +110,8 @@
 		    var data = JSON.parse(msg.data);
 		    dataset = [];
             for(var i=0; i<data.entities.length; i++) {
-                var newNumber1 = data.entities[i].position_row
-                var newNumber2 = data.entities[i].position_col
+                var newNumber1 = data.entities[i].row
+                var newNumber2 = data.entities[i].col
                 var color = "black";
                 if (data.entities[i].team == 0) {
                 	color = "green";
@@ -128,3 +128,4 @@
   </script>
   </body>
 </html>
+

@@ -44,14 +44,14 @@ class GameAPI(channel: Channel[JsValue], worldSize: World.Size = World.Size(30, 
         case World.AgentEntity(pos, id, team, health, _, _) =>
           JsObject(Seq(
             "entityType" -> JsNumber(1),
-            "position_row" -> JsNumber(pos.row),
-            "position_col" -> JsNumber(pos.col),
+            "row" -> JsNumber(pos.row),
+            "col" -> JsNumber(pos.col),
             "team" -> JsNumber(team)))
         case World.PlantEntity(pos) =>
           JsObject(Seq(
             "entityType" -> JsNumber(2),
-            "position_row" -> JsNumber(pos.row),
-            "position_col" -> JsNumber(pos.col),
+            "row" -> JsNumber(pos.row),
+            "col" -> JsNumber(pos.col),
             "team" -> JsNull))
       }
       val json: JsValue = JsObject(Seq(

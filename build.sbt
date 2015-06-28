@@ -12,6 +12,7 @@ libraryDependencies ++= Seq(
   jdbc,
   cache,
   ws,
+  // filters, // gzip
   specs2 % Test
 )
 
