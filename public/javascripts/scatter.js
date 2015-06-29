@@ -55,8 +55,8 @@ function handler(msg) {
 	var data = JSON.parse(msg.data);
 	dataset = [];
 	for (var i = 0; i < data.entities.length; i++) {
-		var newNumber1 = data.entities[i].row
-		var newNumber2 = data.entities[i].col
+		var newNumber1 = data.entities[i].col
+		var newNumber2 = data.entities[i].row
 		var color = "black";
 		if (data.entities[i].team == 0) {
 			color = "green";

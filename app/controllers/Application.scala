@@ -37,7 +37,7 @@ class Application @Inject() (system: ActorSystem) extends Controller {
 
   //  var webSubscribers = List.empty[String]
 
-  val worldSize = World.Size(50, 50)
+  val worldSize = World.Size(30, 30)
   val gameAPI = system.actorOf(GameAPI.props(channel, worldSize), "GameAPI")
 
   def index = Action {
