@@ -1,7 +1,7 @@
 function plotall(dataset) {
 	// Setup settings for graphic
-	var canvas_width = 500;
-	var canvas_height = 500;
+	var canvas_width = 800;
+	var canvas_height = 600;
 	var padding = 30; // for chart edges
 
 	// Create scale functions
@@ -15,11 +15,13 @@ function plotall(dataset) {
 		return d[1]; // input domain
 	}) ]).range([ canvas_height - padding, padding ]); // remember y starts on top going down so we flip
 
+	// TODO: this should equal the number of rows/cols in the world
+	var tickRate = 30;
 	// Define X axis
-	var xAxis = d3.svg.axis().scale(xScale).orient("bottom").ticks(5);
+	var xAxis = d3.svg.axis().scale(xScale).orient("bottom").ticks(tickRate);
 
 	// Define Y axis
-	var yAxis = d3.svg.axis().scale(yScale).orient("left").ticks(5);
+	var yAxis = d3.svg.axis().scale(yScale).orient("left").ticks(tickRate);
 
 	var svgElem = d3.select("svg")
 	if (svgElem) {
@@ -37,7 +39,7 @@ function plotall(dataset) {
 		return yScale(d[1]);
 	}).attr("fill", function(d) {
 		return d[2];
-	}).attr("r", 8); // radius
+	}).attr("r", 10); // radius
 
 	// Add to X axis
 	svg.append("g").attr("class", "x axis").attr("transform",
