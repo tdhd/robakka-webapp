@@ -21,11 +21,11 @@ import io.github.tdhd.robakka.World
 // https://www.playframework.com/documentation/2.4.x/ScalaAkka
 
 /**
+ * main web application
+ *
  * TODO
  * - rename packages of project
  * - need start/stop/configure buttons
- * - scatterplot might be better performing (http://bl.ocks.org/mbostock/3887118)
- * - rename feed
  */
 
 @Singleton
@@ -35,22 +35,17 @@ class Application @Inject() (system: ActorSystem) extends Controller {
   // @channel: source of stream
   val (out, channel) = Concurrent.broadcast[JsValue]
 
-//  var webSubscribers = List.empty[String]
+  //  var webSubscribers = List.empty[String]
 
-  val worldSize = World.Size(30, 30)
+  val worldSize = World.Size(50, 50)
   val gameAPI = system.actorOf(GameAPI.props(channel, worldSize), "GameAPI")
 
-  def scatter = Action {
-    Ok(views.html.scatter("robakka")("todo")(worldSize.nRows, worldSize.nCols))
-  }
-  // TODO: this is just a test for d3js
   def index = Action {
     Ok(views.html.index("Your new application is ready."))
   }
-
   def game = Action { implicit req =>
-//    webSubscribers +:= req.host
-//    webSubscribers.foreach(println)
+    //    webSubscribers +:= req.host
+    //    webSubscribers.foreach(println)
     Ok(views.html.game("robakka")("todo")(worldSize.nRows, worldSize.nCols))
   }
 
@@ -63,12 +58,12 @@ class Application @Inject() (system: ActorSystem) extends Controller {
     Enumeratee.onIterateeDone {
       () =>
         println(s"${request.remoteAddress} - SSE disconnected")
-        //webSubscribers = webSubscribers.filterNot(_ == addr)
+      //webSubscribers = webSubscribers.filterNot(_ == addr)
     }
   }
 
   /** Serves Server Sent Events over HTTP connection */
-  def metricsFeed = Action { implicit req =>
+  def gameFeed = Action { implicit req =>
     {
       //      Enumerator.fromStream(new File("/dev/random"), 100)
       //      Ok.feed(Enumerator(json) &> EventSource()).as("text/event-stream")
