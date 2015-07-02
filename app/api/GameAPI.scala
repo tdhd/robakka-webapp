@@ -23,8 +23,8 @@ object GameAPI {
 class GameAPI(channel: Channel[JsValue], worldSize: World.Size) extends Actor with ActorLogging {
   import context.dispatcher
 
-  val teams = List(Game.Team(0, io.github.tdhd.robakka.behaviours.RandomBehaviour),
-    Game.Team(1, io.github.tdhd.robakka.behaviours.SameRowBehaviour))
+  val teams = List(Game.Team(0, io.github.tdhd.robakka.behaviours.FollowPlantBehaviour),
+    Game.Team(1, io.github.tdhd.robakka.behaviours.FollowEnemyBehaviour))
   val game = context.actorOf(Game.props(teams, worldSize), "Game")
 
   override def preStart() = game ! Game.Subscribe(self)
