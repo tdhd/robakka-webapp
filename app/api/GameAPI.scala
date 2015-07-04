@@ -47,7 +47,7 @@ class GameAPI(channel: Channel[JsValue], worldSize: World.Size) extends Actor wi
             "row" -> JsNumber(pos.row),
             "col" -> JsNumber(pos.col),
             "team" -> JsNumber(team)))
-        case World.PlantEntity(pos) =>
+        case World.PlantEntity(pos, id, energy, ref) =>
           JsObject(Seq(
             "entityType" -> JsNumber(2),
             "row" -> JsNumber(pos.row),
