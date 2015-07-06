@@ -25,7 +25,7 @@ class GameAPI(channel: Channel[JsValue], worldSize: World.Size) extends Actor wi
 
   val teams = List(Game.Team(0, io.github.tdhd.robakka.behaviours.FollowPlantBehaviour),
     Game.Team(1, io.github.tdhd.robakka.behaviours.FollowEnemyBehaviour))
-  val game = context.actorOf(Game.props(teams, worldSize), "Game")
+  val game = context.actorOf(Game.props(teams, worldSize, gameUpdateInterval = 500 milliseconds), "Game")
 
   override def preStart() = game ! Game.Subscribe(self)
   override def postStop() = {
@@ -34,26 +34,44 @@ class GameAPI(channel: Channel[JsValue], worldSize: World.Size) extends Actor wi
   }
 
   def receive = {
-    case ws: World.State =>
-      val nAgents = ws.entities.filter {
-        case agent: World.AgentEntity => true
-        case _ => false
-      }.size
+    case state: World.StateContainer =>
+      val nAgents = state.world.map {
+        case ((i, j), l) => l.filter {
+          case a: World.AgentEntity => true
+          case _ => false
+        }.size
+      }.reduce(_ + _)
 
-      val allEntities = ws.entities.map {
-        case World.AgentEntity(pos, id, team, health, _, _) =>
-          JsObject(Seq(
-            "entityType" -> JsNumber(1),
-            "row" -> JsNumber(pos.row),
-            "col" -> JsNumber(pos.col),
-            "team" -> JsNumber(team)))
-        case World.PlantEntity(pos, id, energy, ref) =>
-          JsObject(Seq(
-            "entityType" -> JsNumber(2),
-            "row" -> JsNumber(pos.row),
-            "col" -> JsNumber(pos.col),
-            "team" -> JsNull))
+      println(s"$nAgents agents left in the game")
+      // map to entities
+      // collect agents only
+      // group by team and print
+      state.world.flatMap{
+        case ((i, j), l) => l
+      }.collect {
+        case agent: World.AgentEntity => agent
+      }.groupBy(_.team).foreach {
+        case (team, teamList) => println(s"team $team has ${teamList.size} members")
       }
+
+      val allEntities = state.world.flatMap {
+        case ((row, col), entities) =>
+          entities.map {
+            case World.AgentEntity(pos, id, team, health, _, _) =>
+              JsObject(Seq(
+                "entityType" -> JsNumber(1),
+                "row" -> JsNumber(pos.row),
+                "col" -> JsNumber(pos.col),
+                "team" -> JsNumber(team)))
+            case World.PlantEntity(pos, id, energy, ref) =>
+              JsObject(Seq(
+                "entityType" -> JsNumber(2),
+                "row" -> JsNumber(pos.row),
+                "col" -> JsNumber(pos.col),
+                "team" -> JsNull))
+          }
+      }.toList
+
       val json: JsValue = JsObject(Seq(
         "nAgents" -> JsNumber(nAgents),
         "entities" -> JsArray(allEntities)))
